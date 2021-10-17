@@ -1,73 +1,88 @@
-# Hands on FastAPI
+# UTS II3160 Teknologi Sistem Terintegrasi - API
 # Afif Fahreza / 18219058
 
-import json
+# Import Libraries
 from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+import json
 
+# Read Json File
 with open("menu.json", "r") as read_file:
     data = json.load(read_file)
 
+# API
 app = FastAPI()
 
-# READ ALL MENU
-@app.get('/menu')
+
+class ItemCreate(BaseModel):  # Create data transfer object (ID auto increment)
+    name: str
+
+
+class ItemUpdate(BaseModel):  # Update data transfer object
+    id: int
+    name: str
+
+
+@app.get('/menu')  # READ ALL MENU
 async def read_all_menu():
     if data['menu']:
         return data['menu']
-    raise HTTPException(
-        status_code=404, detail=f'Item not found'
-    )
+    raise HTTPException(status_code=404, detail=f'Item not found')
 
-# READ MENU BY ID
-@app.get('/menu/{item_id}')
+
+@app.get('/menu/{item_id}')  # READ MENY BY ID
 async def read_menu(item_id: int):
     for menu_item in data['menu']:
         if menu_item['id'] == item_id:
             return menu_item
-    raise HTTPException(
-        status_code=404, detail=f'Item not found'
-    )
+    raise HTTPException(status_code=404, detail=f'Item not found')
 
-# CREATE MENU
-@app.post('/menu')
-async def create_menu(name: str):
+
+@app.post('/menu')  # CREATE MENU
+async def create_menu(item: ItemCreate):
     id = 1
-    if len(data['menu'])>0:
+    if len(data['menu']) > 0:
         id += data['menu'][len(data['menu'])-1]['id']
-    res = {'id': id, 'name': name}
+    item_dict = item.dict()
+    res = {'id': id, 'name': item_dict['name']}
     data['menu'].append(dict(res))
     if res:
-        updateJson(data)
+        with open("menu.json", "w") as write_file:
+            json.dump(data, write_file)
+        write_file.close()
         return res
-    raise HTTPException(
-        status_code=400, detail=f'Bad request'
-    )
+    raise HTTPException(status_code=400, detail=f'Bad request')
 
-# DELETE MENU
-@app.delete('/menu/{item_id}')
+
+@app.delete('/menu/{item_id}')  # DELETE MENU BY ID
 async def delete_meu(item_id: int):
-    for data_menu in data['menu']:
+    item_found = False
+    for data_idx, data_menu in enumerate(data['menu']):
         if data_menu['id'] == item_id:
-            data['menu'].remove(data_menu)
-            updateJson(data)
-            return data['menu']
-    raise HTTPException(
-        status_code=400, detail=f'Bad request'
-    )
+            tmp = data_menu
+            item_found = True
+            data['menu'].pop(data_idx)
+            with open("menu.json", "w") as write_file:
+                json.dump(data, write_file)
+            write_file.close()
+            return tmp
+    if not item_found:
+        return "Menu ID not found"
+    raise HTTPException(status_code=400, detail=f'Item not found')
 
-# UPDATE MENU
-@app.put('/menu/{item_id}')
-async def update_menu(item_id: int, name: str):
-    for data_menu in data['menu']:
-        if data_menu['id'] == item_id:
-            data_menu["name"] = name
-            updateJson(data)
-            return data['menu']
-    raise HTTPException(
-        status_code=400, detail=f'Bad request'
-    )
 
-def updateJson(data):
-    json_obj = json.dumps(data, indent=4)
-    with open("menu.json", "w") as write_file:
-        write_file.write(json_obj)
+@app.put('/menu/{item_id}')  # UPDATE MENU BY ID
+async def update_menu(item_id: int, item: ItemUpdate):
+    item_dict = item.dict()
+    item_found = False
+    for data_idx, item_data in enumerate(data['menu']):
+        if item_data['id'] == item_id:
+            item_found = True
+            data['menu'][data_idx] = item_dict
+            with open("menu.json", "w") as write_file:
+                json.dump(data, write_file)
+            write_file.close()
+            return item_data
+    if not item_found:
+        return "Menu ID not found"
+    raise HTTPException(status_code=400, detail=f'Item not found')
