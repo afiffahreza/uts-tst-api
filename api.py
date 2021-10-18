@@ -1,48 +1,55 @@
+# UTS II3160 Teknologi Sistem Terintegrasi - API
+# Afif Fahreza / 18219058
+
+# Import Libraries
 from datetime import datetime, timedelta
 from typing import Optional
-
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
+import json
 
-# to get a string like this run:
-# openssl rand -hex 32
+# secret key string from openssl rand -hex 32
 SECRET_KEY = "02b55af9a51f87aea76b6406f5667f1341985add1c527afcbd2fcabb46318ab3"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-
-fake_users_db = {
-    "asdf": {
-        "username": "asdf",
-        "full_name": "John Doe",
-        "email": "johndoe@example.com",
-        "hashed_password": "$2b$12$hGKDOwG56pxrtLj8644EHOEIrLHLc7T7JtwSmp.//cV12LuuEQuzu",
-        "disabled": False,
-    }
-}
+# Read Json Files
+with open("menu.json", "r") as read_file:
+    data = json.load(read_file)
+with open("users.json", "r") as read_file:
+    users = json.load(read_file)
 
 
-class Token(BaseModel):
+class Token(BaseModel):  # Token class
     access_token: str
     token_type: str
 
 
-class TokenData(BaseModel):
+class TokenData(BaseModel):  # Token class
     username: Optional[str] = None
 
 
-class User(BaseModel):
+class User(BaseModel):  # User Auth
     username: str
     email: Optional[str] = None
     full_name: Optional[str] = None
     disabled: Optional[bool] = None
 
 
-class UserInDB(User):
+class UserInDB(User):  # User Auth
     hashed_password: str
+
+
+class ItemCreate(BaseModel):  # Create data transfer class (ID auto increment)
+    name: str
+
+
+class ItemUpdate(BaseModel):  # Update data transfer class
+    id: int
+    name: str
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -100,7 +107,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         token_data = TokenData(username=username)
     except JWTError:
         raise credentials_exception
-    user = get_user(fake_users_db, username=token_data.username)
+    user = get_user(users, username=token_data.username)
     if user is None:
         raise credentials_exception
     return user
@@ -115,7 +122,7 @@ async def get_current_active_user(current_user: User = Depends(get_current_user)
 @app.post("/token", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     user = authenticate_user(
-        fake_users_db, form_data.username, form_data.password)
+        users, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -132,8 +139,3 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
 @app.get("/users/me/", response_model=User)
 async def read_users_me(current_user: User = Depends(get_current_active_user)):
     return current_user
-
-
-@app.get("/users/me/items/")
-async def read_own_items(current_user: User = Depends(get_current_active_user)):
-    return [{"item_id": "Foo", "owner": current_user.username}]
