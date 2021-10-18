@@ -1,9 +1,9 @@
 {
     "asdf": {
-        "username": "asdf",
-        "full_name": "Test",
-        "email": "test@example.com",
-        "hashed_password": "$2b$12$hGKDOwG56pxrtLj8644EHOEIrLHLc7T7JtwSmp.//cV12LuuEQuzu",
-        "disabled": false
+            "username": "asdf",
+            "full_name": "Test",
+            "email": "test@example.com",
+            "hashed_password": "$2b$12$hGKDOwG56pxrtLj8644EHOEIrLHLc7T7JtwSmp.//cV12LuuEQuzu",
+            "disabled": false
     }
 }
