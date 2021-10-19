@@ -75,13 +75,14 @@ def get_password_hash(password):
 
 
 def get_user(db, username: str):
-    if username in db:
-        user_dict = db[username]
-        return UserInDB(**user_dict)
+    for usernames in db['users']:
+        if usernames["username"] == username:
+            user_dict = usernames
+            return UserInDB(**user_dict)
 
 
-def authenticate_user(fake_db, username: str, password: str):
-    user = get_user(fake_db, username)
+def authenticate_user(db, username: str, password: str):
+    user = get_user(db, username)
     if not user:
         return False
     if not verify_password(password, user.hashed_password):
@@ -143,23 +144,23 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-# @app.post("/register", response_model=User)
-# async def register(user: UserCreate):
-#     newUser = user.dict()
-#     userJson = {newUser['username']: {
-#         'username': newUser['username'],
-#         'full_name': newUser['full_name'],
-#         'email': newUser['email'],
-#         'hashed_password': get_password_hash(newUser['password']),
-#         'disabled': False
-#     }}
-#     users['user'].add(dict(userJson))
-#     if userJson:
-#         with open("users.json", "w") as write_file:
-#             json.dump(users, write_file)
-#         write_file.close()
-#         return userJson
-#     raise HTTPException(status_code=400, detail=f'Bad request')
+@app.post("/register", response_model=User)
+async def register(user: UserCreate):
+    newUser = user.dict()
+    userJson = {
+        'username': newUser['username'],
+        'full_name': newUser['full_name'],
+        'email': newUser['email'],
+        'hashed_password': get_password_hash(newUser['password']),
+        'disabled': False
+    }
+    users['users'].append(dict(userJson))
+    if userJson:
+        with open("users.json", "w") as write_file:
+            json.dump(users, write_file)
+        write_file.close()
+        return userJson
+    raise HTTPException(status_code=400, detail=f'Bad request')
 
 
 @app.get("/users/me/", response_model=User)
@@ -205,7 +206,7 @@ async def create_menu(item: ItemCreate, current_user: User = Depends(get_current
 
 
 @app.delete('/menu/{item_id}')  # DELETE MENU BY ID
-async def delete_meu(item_id: int, current_user: User = Depends(get_current_active_user)):
+async def delete_menu(item_id: int, current_user: User = Depends(get_current_active_user)):
     if current_user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
     item_found = False

@@ -1,9 +1,1 @@
-{
-    "asdf": {
-            "username": "asdf",
-            "full_name": "Test",
-            "email": "test@example.com",
-            "hashed_password": "$2b$12$hGKDOwG56pxrtLj8644EHOEIrLHLc7T7JtwSmp.//cV12LuuEQuzu",
-            "disabled": false
-    }
-}
+{"users": [{"username": "asdf", "full_name": "Test", "email": "test@example.com", "hashed_password": "$2b$12$hGKDOwG56pxrtLj8644EHOEIrLHLc7T7JtwSmp.//cV12LuuEQuzu", "disabled": false}, {"username": "Test", "full_name": "Test 123", "email": "test@123.com", "hashed_password": "$2b$12$5nsZv.HqkRu28iv8zKcNDuApUU3NtlmiFQNoH4aA4ShDdhtAy/SRq", "disabled": false}, {"username": "hehe", "full_name": "hehehe", "email": "hehe@hehe.hehe", "hashed_password": "$2b$12$qIL5jiaI26A/MBVYOOlcb.VjY2bclcrpeowd1ttssA3WOOtE3C9tC", "disabled": false}]}
