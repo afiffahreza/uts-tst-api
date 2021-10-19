@@ -127,6 +127,11 @@ async def get_current_active_user(current_user: User = Depends(get_current_user)
     return current_user
 
 
+@app.get("/")
+async def root():
+    return {"message": "Afif Fahreza / 18219058. Go to /docs for endpoints."}
+
+
 @app.post("/token", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     user = authenticate_user(
